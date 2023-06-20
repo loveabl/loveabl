@@ -8,3 +8,24 @@ def dark_page():
 
 if __name__ == "__main__":
     app.run()
+python
+# Import necessary libraries
+import redis
+from redis.sentinel import Sentinel
+
+# Define Redis Sentinel configuration
+sentinel = Sentinel([('redis-sentinel', 26379)], socket_timeout=0.1)
+
+# Connect to Redis master instance
+master = sentinel.master_for('mymaster', socket_timeout=0.1)
+
+# Connect to Redis slave instances
+slaves = [sentinel.slave_for('mymaster', socket_timeout=0.1) for _ in range(3)]
+
+# Implement load balancing by distributing client requests across Redis instances
+def get_redis_instance():
+    return slaves[random.randint(0, 2)] if random.random() < 0.5 else master
+
+# Use Redis instance to perform operations
+redis_instance = get_redis_instance()
+redis_instance.set('key', 'value')
